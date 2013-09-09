@@ -182,7 +182,7 @@ class AzimuthPlotter(Tkinter.Tk):
         self.focus_set()
         self._bind_keys()
         ### size and position
-        self.geometry("400"+'x'+"400"+'+'+"100"+'+'+"100")
+        self.geometry("700"+'x'+"500"+'+'+"100"+'+'+"100")
         w, h, pad = self.winfo_screenwidth(), self.winfo_screenheight(), 3
         self._geometry = ("%ix%i+0+0" % (w - pad, h - pad))
 
@@ -212,12 +212,14 @@ class AzimuthPlotter(Tkinter.Tk):
 
     def plot(self):
         with self.lock:
-            short_history = deepcopy(self.history[-10:])
+            short10_history = deepcopy(self.history[-10:])
+            short5_history = deepcopy(self.history[-5:])
+            short3_history = deepcopy(self.history[-3:])
             pitch = deepcopy(self.pitch[-10:])
             roll = deepcopy(self.roll[-10:])
 
         try:
-            azimuth = short_history[-1]
+            azimuth = short10_history[-1]
             pitch = pitch[-1]
             roll = roll[-1]
         # no data to plot yet
@@ -225,30 +227,45 @@ class AzimuthPlotter(Tkinter.Tk):
             self.after(self.update_interval, self.plot)
             return
 
-        std_history = np.std(short_history)
+        std_history10 = np.std(short10_history)
+        std_history5 = np.std(short5_history)
+        std_history3 = np.std(short3_history)
 
         #print "Mean History %f\n"%(mean_history)
-        print "Standart Deviation History %f\n"%(std_history)
+        #print "Standart Deviation History %f\n"%(std_history)
 
-        print "Azimuth[deg]: %f\n"%(azimuth)
-        print  "Pitch: %f, Roll: %f\n"%(pitch, roll)
+        #print "Azimuth[deg]: %f\n"%(azimuth)
+        #print  "Pitch: %f, Roll: %f\n"%(pitch, roll)
 
         # Plot
         azimuth_rad = np.deg2rad(azimuth)
-        std_rad = np.deg2rad(std_history)
-        #std = np.deg2rad(1)
+        std10_rad = np.deg2rad(std_history10)
+        std5_rad = np.deg2rad(std_history5)
+        std3_rad = np.deg2rad(std_history3)
+        
         radii = 1
-        width = 2 * std_rad
+        width10 = 2 * std10_rad
+        width5 = 2 * std5_rad
+        width3 = 2 * std3_rad
         
         ax = self.ax
         ax.clear()
         ax.set_theta_direction(-1)
         ax.set_theta_zero_location("N")
+        plt.setp(ax.get_yticklabels(), visible=False)
         ax.annotate("Azimuth: %.1f\n"%(azimuth),
+                    xy=(azimuth_rad,radii),
+                    xytext=(0.02, 0.17),
+                    textcoords='figure fraction')
+        ax.annotate("Std (10) Azimuth: %.1f\n"%(std_history10),
+                    xy=(azimuth_rad,radii),
+                    xytext=(0.02, 0.14),
+                    textcoords='figure fraction')
+        ax.annotate("Std (5) Azimuth: %.1f\n"%(std_history5),
                     xy=(azimuth_rad,radii),
                     xytext=(0.02, 0.11),
                     textcoords='figure fraction')
-        ax.annotate("Std Azimuth: %.1f\n"%(std_history),
+        ax.annotate("Std (3) Azimuth: %.1f\n"%(std_history3),
                     xy=(azimuth_rad,radii),
                     xytext=(0.02, 0.08),
                     textcoords='figure fraction')
@@ -256,11 +273,13 @@ class AzimuthPlotter(Tkinter.Tk):
                     xy=(azimuth_rad,radii),
                     xytext=(0.02, 0.03),
                     textcoords='figure fraction')
-        ax.annotate("roll: %f\n"%(roll),
+        ax.annotate("roll: %.1f\n"%(roll),
                     xy=(azimuth_rad,radii),
                     xytext=(0.02, 0.0),
                     textcoords='figure fraction')
-        bars = ax.bar(azimuth_rad - 0.5 * width, radii, width=width, alpha=0.2)
+        ax.bar(azimuth_rad - 0.5 * width10, radii, width=width10, alpha=0.2)
+        ax.bar(azimuth_rad - 0.5 * width5, radii, width=width5, alpha=0.2)
+        ax.bar(azimuth_rad - 0.5 * width3, radii, width=width3, alpha=0.2)
         ax.plot([azimuth_rad] * 2, [0, 1], color="r", lw=2)
         self.fig.canvas.draw()
 
