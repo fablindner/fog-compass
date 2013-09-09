@@ -11,6 +11,7 @@ import sys
 import traceback
 import logging
 import math as m
+import matplotlib.pyplot as plt
 
 
 # default logger
@@ -26,7 +27,7 @@ class MySLClient(SLClient):
         Creates a new instance of SLClient accepting a realtime trace handler.
         """
         self.stream = stream
-		#history = []
+        self.history = []
         super(self.__class__, self).__init__(*args, **kwargs)
         self.starttimes_ok = False
 
@@ -101,7 +102,7 @@ class MySLClient(SLClient):
             #g_o_check = False   # clears RTTrace memory on gap or overlap
             
         t1 = self.stream[0].stats.starttime
-        t2 = t1 + 10
+        t2 = t1 + 2
 
         st_work = self.stream.slice(starttime=t1, endtime=t2)
         #print st_work
@@ -140,18 +141,51 @@ class MySLClient(SLClient):
         # azimuth vs north
         azimuth = -m.atan2(rot_vec_cor[1],rot_vec_cor[0]) *  180/m.pi
         
+        
+        self.history.append(azimuth)
+        short_history = self.history[-10:]
+        std_history = np.std(short_history)
+
+        #print "Mean History %f\n"%(mean_history)
+        print "Standart Deviation History %f\n"%(std_history)
+
         print "Azimuth[deg]: %f\n"%(azimuth)
         print  "Pitch: %f, Roll: %f\n"%(theta*180./m.pi,phi*180./m.pi)
-        
-		#self.history = []
-		#self.history.append(azimuth)
-		#short.history = self.history[-10:]
-		#mean.history = np.mean(short.history)
-		#std.history = np.std(short.history)
 
-		#print "Mean History %f\n"%(mean.history)
-		#print "Standart Deviation History %f\n"%(mean.std)
-		
+        # Plot
+        azimuth_rad = np.deg2rad(azimuth)
+        std_rad = np.deg2rad(std_history)
+        #std = np.deg2rad(1)
+        radii = 1
+        width = 2 * std_rad
+        
+        
+        ax = plt.subplot(1, 1, 1, polar=True)
+        ax.annotate("Azimuth: %f\n"%(azimuth),
+                    xy=(azimuth_rad,radii),
+                    xytext=(0.02, 0.11),
+                    textcoords='figure fraction')
+        ax.annotate("Std Azimuth: %f\n"%(std_history),
+                    xy=(azimuth_rad,radii),
+                    xytext=(0.02, 0.08),
+                    textcoords='figure fraction')
+        ax.annotate("pitch: %f\n"%(theta),
+                    xy=(azimuth_rad,radii),
+                    xytext=(0.02, 0.03),
+                    textcoords='figure fraction')
+        ax.annotate("roll: %f\n"%(phi),
+                    xy=(azimuth_rad,radii),
+                    xytext=(0.02, 0.0),
+                    textcoords='figure fraction')
+        ax.set_theta_direction(-1)
+        ax.set_theta_zero_location("N")
+        bars = ax.bar(azimuth_rad - 0.5 * width, radii, width=width, alpha=0.2)
+        plt.plot([azimuth_rad] * 2, [0, 1], color="r", lw=2)
+
+
+        plt.show()
+
+                
         
         self.stream.trim(starttime=t2)
                 
