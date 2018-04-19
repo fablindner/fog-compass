@@ -8,8 +8,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import Tkinter
 
-from obspy.core.utcdatetime import UTCDateTime
-from obspy import *
+from obspy import Stream
 from obspy.clients.seedlink.seedlinkexception import SeedLinkException
 from obspy.clients.seedlink.slclient import SLClient
 from obspy.clients.seedlink.slpacket import SLPacket
