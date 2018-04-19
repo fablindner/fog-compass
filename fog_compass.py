@@ -113,7 +113,8 @@ class MySLClient(SLClient):
             #g_o_check = False   # clears RTTrace memory on gap or overlap
             
         t1 = self.stream[0].stats.starttime
-        t2 = t1 + 2
+        # changed 2 to 10
+        t2 = t1 + 10
 
         st_work = self.stream.slice(starttime=t1, endtime=t2)
         #print st_work
@@ -150,7 +151,7 @@ class MySLClient(SLClient):
         rot_vec_cor = np.dot(R.transpose() , rot_vec)
         
         # azimuth vs north
-        azimuth = -m.atan2(rot_vec_cor[1],rot_vec_cor[0]) *  180/m.pi
+        azimuth = -m.atan2(-1.*rot_vec_cor[1],-1*rot_vec_cor[0]) *  180/m.pi
         
         # calculate pitch and roll
         pitch = m.degrees(theta)
