@@ -10,9 +10,9 @@ import Tkinter
 
 from obspy.core.utcdatetime import UTCDateTime
 from obspy import *
-from obspy.seedlink.seedlinkexception import SeedLinkException
-from obspy.seedlink.slclient import SLClient
-from obspy.seedlink.slpacket import SLPacket
+from obspy.clients.seedlink.seedlinkexception import SeedLinkException
+from obspy.clients.seedlink.slclient import SLClient
+from obspy.clients.seedlink.slpacket import SLPacket
 import numpy as np
 import sys
 import traceback
@@ -43,7 +43,7 @@ class MySLClient(SLClient):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.starttimes_ok = False
 
-    def packetHandler(self, count, slpack):
+    def packet_handler(self, count, slpack):
         """
         Processes each packet received from the SeedLinkConnection.
 
@@ -62,15 +62,15 @@ class MySLClient(SLClient):
             return False
 
         # get basic packet info
-        seqnum = slpack.getSequenceNumber()
-        type = slpack.getType()
+        seqnum = slpack.get_sequence_number()
+        type = slpack.get_type()
 
         # process INFO packets here
         if (type == SLPacket.TYPE_SLINF):
             return False
         if (type == SLPacket.TYPE_SLINFT):
             print "-" * 40
-            print "Complete INFO:\n" + self.slconn.getInfoString()
+            print "Complete INFO:\n" + self.slconn.get_info_string()
             if self.infolevel is not None:
                 return True
             else:
@@ -79,7 +79,7 @@ class MySLClient(SLClient):
         # can send an in-line INFO request here
         if (count % 100 == 0):
             infostr = "ID"
-            self.slconn.requestInfo(infostr)
+            self.slconn.request_info(infostr)
 
         # if here, must be a data blockette
         print "-" * 40
@@ -88,7 +88,7 @@ class MySLClient(SLClient):
 # import ipdb;ipdb.set_trace()
         # process packet data
         
-        trace = slpack.getTrace()
+        trace = slpack.get_trace()
         #print trace
         if trace is not None:
             self.stream += trace
