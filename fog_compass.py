@@ -282,9 +282,10 @@ class AzimuthPlotter(tkinter.Tk):
                     xy=(azimuth_rad,radii),
                     xytext=(0.02, 0.0),
                     textcoords='figure fraction')
-        ax.bar(azimuth_rad - 0.5 * width10, radii, width=width10, alpha=0.2)
-        ax.bar(azimuth_rad - 0.5 * width5, radii, width=width5, alpha=0.2)
-        ax.bar(azimuth_rad - 0.5 * width3, radii, width=width3, alpha=0.2)
+        bar_kwargs = dict(alpha=0.2, align='center')
+        ax.bar(azimuth_rad, radii, width=width10, **bar_kwargs)
+        ax.bar(azimuth_rad, radii, width=width5, **bar_kwargs)
+        ax.bar(azimuth_rad, radii, width=width3, **bar_kwargs)
         ax.plot([azimuth_rad] * 2, [0, 1], color="r", lw=2)
         self.fig.canvas.draw()
 
