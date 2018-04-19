@@ -1,25 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+
+import logging
+import math as m
+import sys
+import threading
+import traceback
+from copy import deepcopy
 
 import matplotlib
 # Set the backend for matplotlib.
 matplotlib.use("TkAgg")
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import Tkinter
+if sys.version_info.major < 3:
+    import Tkinter as tkinter
+else:
+    import tkinter
 
 from obspy import Stream
 from obspy.clients.seedlink.seedlinkexception import SeedLinkException
 from obspy.clients.seedlink.slclient import SLClient
 from obspy.clients.seedlink.slpacket import SLPacket
-import numpy as np
-import sys
-import traceback
-import logging
-import math as m
-import matplotlib.pyplot as plt
-from copy import deepcopy
-import threading
 
 
 # default logger
@@ -68,8 +73,8 @@ class MySLClient(SLClient):
         if (type == SLPacket.TYPE_SLINF):
             return False
         if (type == SLPacket.TYPE_SLINFT):
-            print "-" * 40
-            print "Complete INFO:\n" + self.slconn.get_info_string()
+            print("-" * 40)
+            print("Complete INFO:\n" + self.slconn.get_info_string())
             if self.infolevel is not None:
                 return True
             else:
@@ -81,14 +86,14 @@ class MySLClient(SLClient):
             self.slconn.request_info(infostr)
 
         # if here, must be a data blockette
-        print "-" * 40
-        print self.__class__.__name__ + ": packet seqnum:",
-        print str(seqnum) + ": blockette type: " + str(type)
+        print("-" * 40)
+        print(self.__class__.__name__ + ": packet seqnum:", end='')
+        print(str(seqnum) + ": blockette type: " + str(type))
 # import ipdb;ipdb.set_trace()
         # process packet data
         
         trace = slpack.get_trace()
-        #print trace
+        #print(trace)
         if trace is not None:
             self.stream += trace
             self.stream.merge()
@@ -101,12 +106,12 @@ class MySLClient(SLClient):
             self.starttimes_ok = True
             
            
-            #print self.__class__.__name__ + ": blockette contains a trace: ",
-            #print trace.id, trace.stats['starttime'],
-            #print " dt:" + str(1.0 / trace.stats['sampling_rate']),
-            #print " npts:" + str(trace.stats['npts']),
-            #print " sampletype:" + str(trace.stats['sampletype']),
-            #print " dataquality:" + str(trace.stats['dataquality'])
+            #print(self.__class__.__name__ + ": blockette contains a trace: ", end='')
+            #print(trace.id, trace.stats['starttime'], end='')
+            #print(" dt:" + str(1.0 / trace.stats['sampling_rate']), end='')
+            #print(" npts:" + str(trace.stats['npts']), end='')
+            #print(" sampletype:" + str(trace.stats['sampletype']), end='')
+            #print(" dataquality:" + str(trace.stats['dataquality']))
             
             # Custom: append packet data to RtTrace
             #g_o_check = True    # raises Error on gap or overlap
@@ -117,7 +122,7 @@ class MySLClient(SLClient):
         t2 = t1 + 10
 
         st_work = self.stream.slice(starttime=t1, endtime=t2)
-        #print st_work
+        #print(st_work)
         for tr in st_work:
             if abs(tr.stats.endtime - t2) > tr.stats.delta:
                 return False
@@ -167,11 +172,11 @@ class MySLClient(SLClient):
         return False
 
 
-class AzimuthPlotter(Tkinter.Tk):
+class AzimuthPlotter(tkinter.Tk):
     """
     """
     def __init__(self, lock, shared, *args, **kwargs):
-        Tkinter.Tk.__init__(self, *args, **kwargs)
+        tkinter.Tk.__init__(self, *args, **kwargs)
 
         self.lock = lock
         self.history = shared['history']
@@ -192,7 +197,7 @@ class AzimuthPlotter(Tkinter.Tk):
 
         canvas = FigureCanvasTkAgg(self.fig, master=self)
         canvas.show()
-        canvas.get_tk_widget().pack(fill=Tkinter.BOTH, expand=1)
+        canvas.get_tk_widget().pack(fill=tkinter.BOTH, expand=1)
         self.canvas = canvas
 
         self.plot()
@@ -231,11 +236,11 @@ class AzimuthPlotter(Tkinter.Tk):
         std_history5 = np.std(short5_history)
         std_history3 = np.std(short3_history)
 
-        #print "Mean History %f\n"%(mean_history)
-        #print "Standart Deviation History %f\n"%(std_history)
+        #print("Mean History %f\n"%(mean_history))
+        #print("Standart Deviation History %f\n"%(std_history))
 
-        #print "Azimuth[deg]: %f\n"%(azimuth)
-        #print  "Pitch: %f, Roll: %f\n"%(pitch, roll)
+        #print("Azimuth[deg]: %f\n"%(azimuth))
+        #print( "Pitch: %f, Roll: %f\n"%(pitch, roll))
 
         # Plot
         azimuth_rad = np.deg2rad(azimuth)
@@ -297,7 +302,7 @@ def main():
         #
         #slClient.slconn.setSLAddress("erde:18000")
         #slClient.multiselect = ("BW_FOG1:EJ1 EJ2 EJ3 EN1 EN2 EN3")
-        slClient.slconn.setSLAddress("localhost:18000")
+        slClient.slconn.set_sl_address("localhost:18000")
         slClient.multiselect = ("BW_FOG1:EJ1 EJ2 EJ3 EN1 EN2 EN3")
         #
         #slClient.slconn.setSLAddress("discovery.rm.ingv.it:39962")
@@ -307,19 +312,19 @@ def main():
         #slClient.multiselect = ("AT_TTA:BHZ")
         #
         # set a time window from 2 min in the past to 5 sec in the future
-        print "SeedLink date-time range:", slClient.begin_time, " -> ",
-        print slClient.end_time
+        print("SeedLink date-time range:", slClient.begin_time, " -> ", end='')
+        print(slClient.end_time)
         slClient.verbose = 3
         slClient.initialize()
         # start slClient in a thread
         thread = threading.Thread(target=slClient.run)
         thread.setDaemon(True)
         thread.start()
-    except SeedLinkException, sle:
+    except SeedLinkException as sle:
         logger.critical(sle)
         traceback.print_exc()
         raise sle
-    except Exception, e:
+    except Exception as e:
         sys.stderr.write("Error:" + str(e))
         traceback.print_exc()
         raise e
