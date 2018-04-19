@@ -119,7 +119,7 @@ class MySLClient(SLClient):
             
         t1 = self.stream[0].stats.starttime
         # changed 2 to 10
-        t2 = t1 + 10
+        t2 = t1 + 2
 
         st_work = self.stream.slice(starttime=t1, endtime=t2)
         #print(st_work)
